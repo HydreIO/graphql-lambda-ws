@@ -12,6 +12,15 @@ import {
   ExecutionResult,
 } from 'graphql'
 
+function parse_cookies(event) {
+  const cookie_header = event?.headers?.Cookie || ''
+  return cookie_header.split('; ').reduce((parsed_cookies, cookie) => {
+    const [name, ...value_parts] = cookie.split('=')
+    const value = value_parts.join('=')
+    return { ...parsed_cookies, [name]: value }
+  }, {})
+}
+
 export default ({
   schema,
   build_context,
@@ -66,7 +75,12 @@ export default ({
       operationName,
       rootValue,
       variableValues: variables,
-      contextValue: (await build_context({ event, context })) ?? {},
+      contextValue:
+        (await build_context({
+          event,
+          context,
+          cookies: parse_cookies(event),
+        })) ?? {},
     }
 
     if (operation === 'subscription') {
