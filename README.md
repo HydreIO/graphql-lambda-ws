@@ -46,8 +46,8 @@ export default serve({
   },
   // The root value for your resolvers
   root_value: {},
-  // Options for the AWS API Gateway Management API client.
-  aws_client_options: {},
+  // Options for the AWS API Gateway Management API client. @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-apigatewaymanagementapi/
+  aws_client_options: { endpoint: 'http://localhost:3001' },
   // A function that formats errors before they're returned to the client.
   format_error: error => error,
 })
@@ -79,6 +79,19 @@ functions:
 plugins:
   - serverless-dotenv-plugin
   - serverless-offline
+```
+
+Now run
+
+```sh
+sls offline
+```
+
+And another terminal try it with [wscat](https://github.com/websockets/wscat)
+
+```sh
+wscat -c ws://localhost:3001
+> {"query":"subscription { test }"}
 ```
 
 ## Contributing 🤝
