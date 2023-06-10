@@ -21,6 +21,14 @@ function parse_cookies(event) {
   }, {})
 }
 
+const set_cookies = cookies =>
+  Object.entries(cookies).reduce((headers, [name, value], i) => {
+    return {
+      ...headers,
+      [`Set-Cookie${i + 1}`]: `${name}=${value}; Secure; HttpOnly`,
+    }
+  }, {})
+
 export default ({
   schema,
   build_context,
@@ -37,68 +45,86 @@ export default ({
     })
 
   const Result = {
-    success: body => {
-      return {
-        type: 'application/json',
-        statusCode: 200,
-        body: format_body(body),
-      }
-    },
-    failure: errors => ({
-      data: undefined,
-      // errors might not be an array
-      errors: [errors].flatMap(format_error),
+    success: (body, cookies) => ({
+      statusCode: 200,
+      headers: {
+        ...set_cookies(cookies),
+        'Content-Type': 'application/json',
+      },
+      body: format_body(body),
+    }),
+    failure: (errors, cookies) => ({
+      statusCode: 400,
+      headers: {
+        ...set_cookies(cookies),
+        'Content-Type': 'application/json',
+      },
+      body: format_body({
+        data: undefined,
+        // errors might not be an array
+        errors: [errors].flatMap(format_error),
+      }),
     }),
   }
 
   return async (event, context) => {
-    const {
-      body,
-      requestContext: { connectionId },
-    } = event
-    const { query, operationName, variables } = JSON.parse(body)
+    let cookies_to_set = null
 
-    if (!query) return Result.failure(new Error("'query' field not provided"))
+    try {
+      const {
+        body,
+        requestContext: { connectionId },
+      } = event
+      const { query, operationName, variables } = JSON.parse(body)
 
-    const document = parse(query)
-    const errors = validate(schema, document)
+      if (!query) return Result.failure(new Error("'query' field not provided"))
 
-    if (errors.length) return Result.failure(errors)
+      const document = parse(query)
+      const errors = validate(schema, document)
 
-    const { operation } = getOperationAST(document, operationName)
-    if (!operation)
-      return Result.failure(new Error(`Operation '${operationName}' not found`))
+      if (errors.length) return Result.failure(errors)
 
-    const options = {
-      document,
-      schema,
-      operationName,
-      rootValue,
-      variableValues: variables,
-      contextValue:
-        (await build_context({
-          event,
-          context,
-          cookies: parse_cookies(event),
-        })) ?? {},
-    }
-
-    if (operation === 'subscription') {
-      const subscribe_result = await subscribe(options)
-      if (subscribe_result instanceof ExecutionResult)
-        return Result.success(subscribe_result)
-
-      await aiter(await subscribe_result()).forEach(result =>
-        client.send(
-          new PostToConnectionCommand({
-            ConnectionId: connectionId,
-            Data: format_body(result),
-          })
+      const { operation } = getOperationAST(document, operationName)
+      if (!operation)
+        return Result.failure(
+          new Error(`Operation '${operationName}' not found`)
         )
-      )
-      return Result.success()
-    }
 
-    return Result.success(await execute(options))
+      const options = {
+        document,
+        schema,
+        operationName,
+        rootValue,
+        variableValues: variables,
+        contextValue:
+          (await build_context({
+            event,
+            context,
+            cookies: parse_cookies(event),
+            set_cookies: cookies => (cookies_to_set = cookies),
+          })) ?? {},
+      }
+
+      if (operation === 'subscription') {
+        const subscribe_result = await subscribe(options)
+        if (subscribe_result instanceof ExecutionResult)
+          return Result.success(subscribe_result, cookies_to_set)
+
+        await aiter(await subscribe_result()).forEach(result =>
+          client.send(
+            new PostToConnectionCommand({
+              ConnectionId: connectionId,
+              Data: format_body(result),
+            })
+          )
+        )
+        return Result.success(null, cookies_to_set)
+      }
+
+      return Result.success(await execute(options), cookies_to_set)
+    } catch (error) {
+      console.error(error)
+      return Result.failure(error, cookies_to_set)
+    }
   }
 }

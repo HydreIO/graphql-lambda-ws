@@ -37,7 +37,11 @@ export default serve({
   // the build schema
   schema: make_schema('type Query {}'),
   // An async function that builds the context for each request.
-  build_context: async ({ event, context, cookies }) => ({}),
+  build_context: async ({ event, context, cookies, set_cookies }) => {
+    const { my_cookie } = cookies
+    set_cookies({ my_cookie: 'hello world ' })
+    return {}
+  },
   // The root value for your resolvers
   root_value: {},
   // Options for the AWS API Gateway Management API client.
