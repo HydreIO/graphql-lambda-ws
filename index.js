@@ -2,15 +2,7 @@ import {
   ApiGatewayManagementApiClient,
   PostToConnectionCommand,
 } from '@aws-sdk/client-apigatewaymanagementapi'
-import { aiter } from 'iterator-helper'
-import {
-  parse,
-  getOperationAST,
-  execute,
-  subscribe,
-  validate,
-  ExecutionResult,
-} from 'graphql'
+import { parse, getOperationAST, execute, subscribe, validate } from 'graphql'
 
 function parse_cookies(event) {
   const cookie_header = event?.headers?.Cookie || ''
@@ -111,18 +103,15 @@ export default ({
       }
 
       if (operation === 'subscription') {
-        const subscribe_result = await subscribe(options)
-        if (subscribe_result instanceof ExecutionResult)
-          return Result.success(subscribe_result, cookies_to_set)
-
-        await aiter(await subscribe_result()).forEach(result =>
+        for await (const result of subscribe(options)) {
           client.send(
             new PostToConnectionCommand({
               ConnectionId: connectionId,
               Data: format_body(result),
             })
           )
-        )
+        }
+
         return Result.success(null, cookies_to_set)
       }
 
