@@ -21,13 +21,18 @@ function parse_cookies(event) {
   }, {})
 }
 
-const set_cookies = cookies =>
-  Object.entries(cookies).reduce((headers, [name, value], i) => {
+const set_cookies = (cookies = []) => {
+  return cookies.reduce((headers, { name, value, options = {} }, i) => {
+    const optionsString = Object.entries(options)
+      .map(([key, value]) => `${key}${value ? `=${value}` : ''}`)
+      .join('; ')
+
     return {
       ...headers,
-      [`Set-Cookie${i + 1}`]: `${name}=${value}; Secure; HttpOnly`,
+      [`Set-Cookie${i + 1}`]: `${name}=${value}; ${optionsString}`,
     }
   }, {})
+}
 
 export default ({
   schema,

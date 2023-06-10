@@ -39,7 +39,7 @@ export default serve({
   // An async function that builds the context for each request.
   build_context: async ({ event, context, cookies, set_cookies }) => {
     const { my_cookie } = cookies
-    set_cookies({ my_cookie: 'hello world ' })
+    set_cookies([{ name: 'hello', value: 'world', options: { Secure: true } }])
     return {}
   },
   // The root value for your resolvers
