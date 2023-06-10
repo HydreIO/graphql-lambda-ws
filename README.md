@@ -32,10 +32,12 @@ Here is a simple usage example:
 import serve from '@hydre/graphql-lambda-ws'
 import make_schema from '@hydre/make_schema'
 
+export const connect = (_, __, cb) => cb(null, { statusCode: 200, body: '🇺🇦' })
+
 // this returns a function (event, context) => {}
 export default serve({
   // the build schema
-  schema: make_schema('type Query {}'),
+  schema: make_schema({ ... }),
   // An async function that builds the context for each request.
   build_context: async ({ event, context, cookies, set_cookies }) => {
     const { my_cookie } = cookies
@@ -49,6 +51,34 @@ export default serve({
   // A function that formats errors before they're returned to the client.
   format_error: error => error,
 })
+```
+
+You may use it along Serverless like this
+
+```yml
+service: my-service
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  connect:
+    handler: src/index.connect
+    events:
+      - websocket:
+          route: $connect
+  default:
+    handler: src/index.default
+    events:
+      - websocket:
+          route: $default
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
 ```
 
 ## Contributing 🤝

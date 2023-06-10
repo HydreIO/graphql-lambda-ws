@@ -65,7 +65,7 @@ export default ({
   }
 
   return async (event, context) => {
-    let cookies_to_set = null
+    let cookies_to_set
 
     try {
       const {
@@ -103,8 +103,8 @@ export default ({
       }
 
       if (operation === 'subscription') {
-        for await (const result of subscribe(options)) {
-          client.send(
+        for await (const result of await subscribe(options)) {
+          await client.send(
             new PostToConnectionCommand({
               ConnectionId: connectionId,
               Data: format_body(result),
