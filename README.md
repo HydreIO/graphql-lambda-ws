@@ -1,7 +1,7 @@
 # @hydre/graphql-lambda-ws 🌐🚀
 
-[![NPM version](https://img.shields.io/npm/v/hydre/graphql-lambda-ws.svg?style=flat-square)](https://www.npmjs.com/package/graphql_serverless_websocket)
-[![Downloads](https://img.shields.io/npm/dm/@hydre/graphql-lambda-ws.svg?style=flat-square)](https://www.npmjs.com/package/graphql_serverless_websocket)
+[![NPM version](https://img.shields.io/npm/v/@hydre/graphql-lambda-ws.svg?style=flat-square)](https://www.npmjs.com/package/@hydre/graphql-lambda-ws)
+[![Downloads](https://img.shields.io/npm/dm/@hydre/graphql-lambda-ws.svg?style=flat-square)](https://www.npmjs.com/package/@hydre/graphql-lambda-ws)
 
 Welcome to GraphQL Serverless WebSocket library, a simple and powerful solution for implementing GraphQL subscriptions over WebSocket on Serverless architectures. 🛰️🌟
 
