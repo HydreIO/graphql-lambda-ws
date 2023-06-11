@@ -4,28 +4,6 @@ import {
 } from '@aws-sdk/client-apigatewaymanagementapi'
 import { parse, getOperationAST, execute, subscribe, validate } from 'graphql'
 
-function parse_cookies(event) {
-  const cookie_header = event?.headers?.Cookie || ''
-  return cookie_header.split('; ').reduce((parsed_cookies, cookie) => {
-    const [name, ...value_parts] = cookie.split('=')
-    const value = value_parts.join('=')
-    return { ...parsed_cookies, [name]: value }
-  }, {})
-}
-
-const set_cookies = (cookies = []) => {
-  return cookies.reduce((headers, { name, value, options = {} }, i) => {
-    const optionsString = Object.entries(options)
-      .map(([key, value]) => `${key}${value ? `=${value}` : ''}`)
-      .join('; ')
-
-    return {
-      ...headers,
-      [`Set-Cookie${i + 1}`]: `${name}=${value}; ${optionsString}`,
-    }
-  }, {})
-}
-
 const DEFAULT_HEADERS = () => ({
   'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Allow-Origin': '*',
@@ -42,7 +20,6 @@ export default ({
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
   return async (event, context) => {
-    let cookies_to_set
     const {
       body,
       requestContext: { connectionId },
@@ -57,20 +34,18 @@ export default ({
       })
 
     const Result = {
-      success: (body, cookies) => ({
+      success: body => ({
         statusCode: 200,
         headers: {
           ...headers({ event, context }),
-          ...set_cookies(cookies),
           'Content-Type': 'application/json',
         },
         body: format_body(body),
       }),
-      failure: (errors, cookies) => ({
+      failure: errors => ({
         statusCode: 400,
         headers: {
           ...headers({ event, context }),
-          ...set_cookies(cookies),
           'Content-Type': 'application/json',
         },
         body: format_body({
@@ -105,8 +80,6 @@ export default ({
           (await build_context({
             event,
             context,
-            cookies: parse_cookies(event),
-            set_cookies: cookies => (cookies_to_set = cookies),
           })) ?? {},
       }
 
@@ -120,13 +93,13 @@ export default ({
           )
         }
 
-        return Result.success(null, cookies_to_set)
+        return Result.success(null)
       }
 
-      return Result.success(await execute(options), cookies_to_set)
+      return Result.success(await execute(options))
     } catch (error) {
       console.error(error)
-      return Result.failure(error, cookies_to_set)
+      return Result.failure(error)
     }
   }
 }

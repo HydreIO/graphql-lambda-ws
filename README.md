@@ -10,7 +10,6 @@ Welcome to GraphQL Serverless WebSocket library, a simple and powerful solution 
 - **AWS Integration**: Built-in integration with AWS API Gateway Management API for easy deployment on AWS Lambda.
 - **Flexible Error Handling**: Customize how errors are formatted and returned to the client.
 - **Built-In Validation**: Automatically validates incoming GraphQL requests against your schema.
-- **Cookies support**: You'll find a pre-parsed cookies object in the context function
 
 ## Installation 📦
 
@@ -39,11 +38,7 @@ export default serve({
   // the build schema
   schema: make_schema({ ... }),
   // An async function that builds the context for each request.
-  build_context: async ({ event, context, cookies, set_cookies }) => {
-    const { my_cookie } = cookies
-    set_cookies([{ name: 'hello', value: 'world', options: { Secure: true } }])
-    return {}
-  },
+  build_context: async ({ event, context }) => ({}),
   // The root value for your resolvers
   root_value: {},
   // Options for the AWS API Gateway Management API client. @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-apigatewaymanagementapi/
