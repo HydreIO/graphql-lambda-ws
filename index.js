@@ -4,18 +4,13 @@ import {
 } from '@aws-sdk/client-apigatewaymanagementapi'
 import { parse, getOperationAST, execute, subscribe, validate } from 'graphql'
 
-const DEFAULT_HEADERS = () => ({
-  'Access-Control-Allow-Credentials': 'true',
-  'Access-Control-Allow-Origin': '*',
-})
-
 export default ({
   schema,
   build_context,
   rootValue,
   aws_client_options = {},
   format_error = error => error,
-  headers = DEFAULT_HEADERS,
+  headers = () => ({}),
 }) => {
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
