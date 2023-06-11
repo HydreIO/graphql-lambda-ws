@@ -50,6 +50,11 @@ export default serve({
   aws_client_options: { endpoint: 'http://localhost:3001' },
   // A function that formats errors before they're returned to the client.
   format_error: error => error,
+  // control your headers here
+  headers: ({ event, context }) => ({
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Origin': '*',
+  })
 })
 ```
 

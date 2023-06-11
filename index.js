@@ -26,12 +26,18 @@ const set_cookies = (cookies = []) => {
   }, {})
 }
 
+const DEFAULT_HEADERS = () => ({
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Origin': '*',
+})
+
 export default ({
   schema,
   build_context,
   rootValue,
   aws_client_options = {},
   format_error = error => error,
+  headers = DEFAULT_HEADERS,
 }) => {
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
@@ -54,6 +60,7 @@ export default ({
       success: (body, cookies) => ({
         statusCode: 200,
         headers: {
+          ...headers({ event, context }),
           ...set_cookies(cookies),
           'Content-Type': 'application/json',
         },
@@ -62,6 +69,7 @@ export default ({
       failure: (errors, cookies) => ({
         statusCode: 400,
         headers: {
+          ...headers({ event, context }),
           ...set_cookies(cookies),
           'Content-Type': 'application/json',
         },
