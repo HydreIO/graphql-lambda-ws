@@ -35,45 +35,45 @@ export default ({
 }) => {
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
-  const format_body = ({ data, errors = [] } = {}) =>
-    JSON.stringify({
-      data,
-      errors: errors.map(format_error),
-    })
-
-  const Result = {
-    success: (body, cookies) => ({
-      statusCode: 200,
-      headers: {
-        ...set_cookies(cookies),
-        'Content-Type': 'application/json',
-      },
-      body: format_body(body),
-    }),
-    failure: (errors, cookies) => ({
-      statusCode: 400,
-      headers: {
-        ...set_cookies(cookies),
-        'Content-Type': 'application/json',
-      },
-      body: format_body({
-        data: undefined,
-        // errors might not be an array
-        errors: [errors].flatMap(format_error),
-      }),
-    }),
-  }
-
   return async (event, context) => {
     let cookies_to_set
+    const {
+      body,
+      requestContext: { connectionId },
+    } = event
+    const { id, query, operationName, variables } = JSON.parse(body)
+
+    const format_body = ({ data, errors = [] } = {}) =>
+      JSON.stringify({
+        id,
+        data,
+        errors: errors.map(format_error),
+      })
+
+    const Result = {
+      success: (body, cookies) => ({
+        statusCode: 200,
+        headers: {
+          ...set_cookies(cookies),
+          'Content-Type': 'application/json',
+        },
+        body: format_body(body),
+      }),
+      failure: (errors, cookies) => ({
+        statusCode: 400,
+        headers: {
+          ...set_cookies(cookies),
+          'Content-Type': 'application/json',
+        },
+        body: format_body({
+          data: undefined,
+          // errors might not be an array
+          errors: [errors].flatMap(format_error),
+        }),
+      }),
+    }
 
     try {
-      const {
-        body,
-        requestContext: { connectionId },
-      } = event
-      const { query, operationName, variables } = JSON.parse(body)
-
       if (!query) return Result.failure(new Error("'query' field not provided"))
 
       const document = parse(query)
