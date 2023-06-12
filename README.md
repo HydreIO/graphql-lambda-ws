@@ -92,55 +92,7 @@ wscat -c ws://localhost:3001
 > {"query":"subscription { test }"}
 ```
 
-Or in your web App
-
-```js
-const SOCKET_TIMEOUT = 3000
-const message_resolvers = new Map()
-
-let websocket
-
-function create_websocket({ message_handler }) {
-  websocket = new WebSocket(VITE_API_URL)
-
-  websocket.onopen = () => console.log('connected')
-  websocket.onmessage = message_handler
-  websocket.onerror = ({ error }) => console.error(error)
-
-  websocket.onclose = () => {
-    websocket_status.value = false
-    setTimeout(() => create_websocket({ message_handler }), SOCKET_TIMEOUT)
-  }
-}
-
-create_websocket({
-  message_handler: event => {
-    const { id, data, errors } = event.data
-
-    if (errors?.length) {
-      const [{ message }] = errors
-      switch (message) {
-        case 'USER_NOT_FOUND':
-          alert('Your login session has expired, please login again')
-          break
-        default:
-          alert(`Something is wrong 😢`)
-          break
-      }
-      throw new Error(message)
-    }
-
-    const resolver = message_resolvers.get(id)
-    if (resolver) resolver({ id, data, errors })
-  },
-})
-
-export default async function* graphql_request({ query, variables }) {
-  const id = nanoid()
-  websocket.send(JSON.stringify({ id, query, variables }))
-  yield new Promise(resolve => message_resolvers.set(id, resolve))
-}
-```
+Find a vuejs example under [/example/index.js](/example/index.js)
 
 ## Contributing 🤝
 

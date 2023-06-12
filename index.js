@@ -21,16 +21,17 @@ export default ({
     const { id, query, operationName, variables } = JSON.parse(body)
     const custom_headers = {}
 
-    const format_body = ({ data, errors = [] } = {}) =>
+    const format_body = ({ data, errors = [], done = false } = {}) =>
       JSON.stringify({
         id,
         data,
+        done,
         errors: [errors].flat(Infinity).map(format_error),
       })
 
     const Result = {
       success: body => ({
-        statusCode: body.errors?.length ? 200 : 400,
+        statusCode: body?.errors?.length ? 400 : 200,
         headers: {
           ...custom_headers,
           'Content-Type': 'application/json',
@@ -87,7 +88,14 @@ export default ({
           )
         }
 
-        return Result.success(null)
+        await client.send(
+          new PostToConnectionCommand({
+            ConnectionId: connectionId,
+            Data: format_body({ done: true }),
+          })
+        )
+
+        return Result.success()
       }
 
       return Result.success(await execute(options))
