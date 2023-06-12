@@ -29,6 +29,14 @@ export default ({
         errors: [errors].flat(Infinity).map(format_error),
       })
 
+    const post_message = message =>
+      client.send(
+        new PostToConnectionCommand({
+          ConnectionId: connectionId,
+          Data: format_body(message),
+        })
+      )
+
     const Result = {
       success: body => ({
         statusCode: body?.errors?.length ? 400 : 200,
@@ -79,22 +87,13 @@ export default ({
       }
 
       if (operation === 'subscription') {
-        for await (const result of await subscribe(options)) {
-          await client.send(
-            new PostToConnectionCommand({
-              ConnectionId: connectionId,
-              Data: format_body(result),
-            })
-          )
+        try {
+          for await (const result of await subscribe(options))
+            await post_message(result)
+        } catch (error) {
+          await post_message({ errors: error, done: true })
         }
-
-        await client.send(
-          new PostToConnectionCommand({
-            ConnectionId: connectionId,
-            Data: format_body({ done: true }),
-          })
-        )
-
+        await post_message({ done: true })
         return Result.success()
       }
 
