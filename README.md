@@ -38,18 +38,14 @@ export default serve({
   // the build schema
   schema: make_schema({ ... }),
   // An async function that builds the context for each request.
-  build_context: async ({ event, context }) => ({}),
+  // `set_headers` can be called to assign headers to the response
+  build_context: async ({ event, context, set_headers }) => ({}),
   // The root value for your resolvers
   root_value: {},
   // Options for the AWS API Gateway Management API client. @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-apigatewaymanagementapi/
   aws_client_options: { endpoint: 'http://localhost:3001' },
   // A function that formats errors before they're returned to the client.
   format_error: error => error,
-  // control your headers here
-  headers: ({ event, context }) => ({
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Origin': '*',
-  })
 })
 ```
 

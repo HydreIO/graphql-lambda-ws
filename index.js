@@ -10,7 +10,6 @@ export default ({
   rootValue,
   aws_client_options = {},
   format_error = error => error,
-  headers = () => ({}),
 }) => {
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
@@ -20,6 +19,7 @@ export default ({
       requestContext: { connectionId },
     } = event
     const { id, query, operationName, variables } = JSON.parse(body)
+    const custom_headers = {}
 
     const format_body = ({ data, errors = [] } = {}) =>
       JSON.stringify({
@@ -32,7 +32,7 @@ export default ({
       success: body => ({
         statusCode: 200,
         headers: {
-          ...headers({ event, context }),
+          ...custom_headers,
           'Content-Type': 'application/json',
         },
         body: format_body(body),
@@ -40,7 +40,7 @@ export default ({
       failure: errors => ({
         statusCode: 400,
         headers: {
-          ...headers({ event, context }),
+          ...custom_headers,
           'Content-Type': 'application/json',
         },
         body: format_body({
@@ -75,6 +75,7 @@ export default ({
           (await build_context({
             event,
             context,
+            set_headers: headers => Object.assign(custom_headers, headers),
           })) ?? {},
       }
 
