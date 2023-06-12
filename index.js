@@ -25,12 +25,12 @@ export default ({
       JSON.stringify({
         id,
         data,
-        errors: errors.map(format_error),
+        errors: [errors].flat(Infinity).map(format_error),
       })
 
     const Result = {
       success: body => ({
-        statusCode: 200,
+        statusCode: body.errors?.length ? 200 : 400,
         headers: {
           ...custom_headers,
           'Content-Type': 'application/json',
@@ -43,13 +43,16 @@ export default ({
           ...custom_headers,
           'Content-Type': 'application/json',
         },
-        body: format_body({
-          data: undefined,
-          // errors might not be an array
-          errors: [errors].flatMap(format_error),
-        }),
+        body: format_body({ errors }),
       }),
     }
+
+    const contextValue =
+      (await build_context({
+        event,
+        context,
+        set_headers: headers => Object.assign(custom_headers, headers),
+      })) ?? {}
 
     try {
       if (!query) return Result.failure(new Error("'query' field not provided"))
@@ -71,12 +74,7 @@ export default ({
         operationName,
         rootValue,
         variableValues: variables,
-        contextValue:
-          (await build_context({
-            event,
-            context,
-            set_headers: headers => Object.assign(custom_headers, headers),
-          })) ?? {},
+        contextValue,
       }
 
       if (operation === 'subscription') {
