@@ -4,6 +4,14 @@ import {
 } from '@aws-sdk/client-apigatewaymanagementapi'
 import { parse, getOperationAST, execute, subscribe, validate } from 'graphql'
 
+const safe_json_parse = json => {
+  try {
+    return JSON.parse(json)
+  } catch {
+    return {}
+  }
+}
+
 export default ({
   schema,
   build_context,
@@ -15,7 +23,7 @@ export default ({
 
   return async (event, context) => {
     const { body, requestContext: { connectionId } = {} } = event
-    const { id, query, operationName, variables } = JSON.parse(body)
+    const { id, query, operationName, variables = {} } = safe_json_parse(body)
     const custom_headers = {}
 
     const format_body = ({ data, errors = [], done = false } = {}) =>
