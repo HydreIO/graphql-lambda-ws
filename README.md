@@ -46,6 +46,8 @@ export default serve({
   aws_client_options: { endpoint: 'http://localhost:3001' },
   // A function that formats errors before they're returned to the client.
   format_error: error => error,
+  // log every lambda responses
+  log_response: false
 })
 ```
 

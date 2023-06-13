@@ -18,6 +18,7 @@ export default ({
   rootValue,
   aws_client_options = {},
   format_error = error => error,
+  log_response = false,
 }) => {
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
@@ -43,22 +44,30 @@ export default ({
       )
 
     const Result = {
-      success: body => ({
-        statusCode: 200,
-        headers: {
-          ...custom_headers,
-          'Content-Type': 'application/json',
-        },
-        body: format_body(body),
-      }),
-      failure: errors => ({
-        statusCode: 400,
-        headers: {
-          ...custom_headers,
-          'Content-Type': 'application/json',
-        },
-        body: format_body({ errors }),
-      }),
+      success: body => {
+        const response = {
+          statusCode: 200,
+          headers: {
+            ...custom_headers,
+            'Content-Type': 'application/json',
+          },
+          body: format_body(body),
+        }
+        if (log_response) console.dir(response, { depth: Infinity })
+        return response
+      },
+      failure: errors => {
+        const response = {
+          statusCode: 400,
+          headers: {
+            ...custom_headers,
+            'Content-Type': 'application/json',
+          },
+          body: format_body({ errors }),
+        }
+        if (log_response) console.dir(response, { depth: Infinity })
+        return response
+      },
     }
 
     const contextValue =
