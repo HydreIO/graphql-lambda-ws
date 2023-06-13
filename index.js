@@ -14,10 +14,7 @@ export default ({
   const client = new ApiGatewayManagementApiClient(aws_client_options)
 
   return async (event, context) => {
-    const {
-      body,
-      requestContext: { connectionId },
-    } = event
+    const { body, requestContext: { connectionId } = {} } = event
     const { id, query, operationName, variables } = JSON.parse(body)
     const custom_headers = {}
 
