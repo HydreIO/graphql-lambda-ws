@@ -53,7 +53,7 @@ export default ({
           },
           body: format_body(body),
         }
-        if (log_response) console.dir(response, { depth: Infinity })
+        if (log_response) console.log(JSON.stringify(response.body))
         return response
       },
       failure: errors => {
@@ -65,7 +65,7 @@ export default ({
           },
           body: format_body({ errors }),
         }
-        if (log_response) console.dir(response, { depth: Infinity })
+        if (log_response) console.log(JSON.stringify(response.body))
         return response
       },
     }
