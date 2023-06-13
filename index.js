@@ -44,7 +44,7 @@ export default ({
 
     const Result = {
       success: body => ({
-        statusCode: body?.errors?.length ? 400 : 200,
+        statusCode: 200,
         headers: {
           ...custom_headers,
           'Content-Type': 'application/json',
