@@ -53,7 +53,7 @@ export default ({
           },
           body: format_body(body),
         }
-        if (log_response) console.log(JSON.stringify(response.body))
+        if (log_response) console.log('Response success:', response.body)
         return response
       },
       failure: errors => {
@@ -65,7 +65,7 @@ export default ({
           },
           body: format_body({ errors }),
         }
-        if (log_response) console.log(JSON.stringify(response.body))
+        if (log_response) console.log('Response failure:', response.body)
         return response
       },
     }
